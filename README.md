@@ -8,7 +8,7 @@ This is my freshman-year flagship project. The goal: a prototype adopted by univ
 
 ## Why this exists
 
-Research-grade autonomous surface vessels cost tens of thousands of dollars. However there is no university grade platform for aquatic research. Triteus ASV and its companion application address these pitfalls. With a simple interface, anyone can operate it even without sailing experience.
+Research-grade autonomous surface vessels cost tens of thousands of dollars. However there isn't a Collegiate alternative. Triteus ASV and its companion application address these pitfalls. With a simple interface, anyone can operate it even without sailing experience.
 
 - **Sailing intelligence** — wind-aware mission planning and no-go zone visualization, built on a live true-wind estimate from the boat itself
 - **A science layer** — sensor scheduling and environmental data displayed alongside the boat's track, so a researcher plans a sampling transect, not a flight plan
