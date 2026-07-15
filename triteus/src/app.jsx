@@ -1,11 +1,11 @@
 import Ribbon from './Ribbon'
-
+import Map from './Map'
 function App() {
   return (
     <>
-      <Ribbon />
-      <div className="min-h-screen bg-neutral-950 flex items-center justify-center">
-        <h1 className="text-white text-3xl font-bold">Tailwind is working</h1>
+      <div className='flex flex-col h-screen'>
+        <Ribbon />
+        <Map />
       </div>
     </>
   )

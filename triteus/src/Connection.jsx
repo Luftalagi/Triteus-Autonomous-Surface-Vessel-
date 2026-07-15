@@ -18,7 +18,7 @@ function Connection(){
     }
 
     return(
-        <div className='h-full flex flex-col items-center gap-y-0 py-3'>
+        <div className='h-full flex flex-col items-center gap-y-0 py-3 justify-end'>
          <img src={GetIconForStrength(0.2)} alt="" className='h-full'/>
          <span className='text-indigo-50 text-sm'>CONNECTION</span>
         </div>
