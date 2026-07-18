@@ -5,7 +5,7 @@ import pandas as pd
 import requests_cache
 from retry_requests import retry
 
-import PIL
+from PIL import Image
 
 # Setup the Open-Meteo API client with cache and retry on error
 cache_session = requests_cache.CachedSession('.cache', expire_after = 3600)
@@ -49,23 +49,52 @@ def generateLatLong(bounds: Bounds, interval: float):
 
     return lats, lons
 
-demoBoundary = Bounds(78, 80, 28, 30)
+demoBoundary = Bounds(24.5, 27.0, -82.0, -79.5)
 interval = step_for_bbox(demoBoundary)
 lat, lon = generateLatLong(demoBoundary, interval=interval)
 
 print(f"Latitude: {lat}")
 print(f"Longitudes: {lon}")
 
+grid_lats = []
+grid_lons = []
+for la in lat:
+    for lo in lon:
+        grid_lats.append(la)
+        grid_lons.append(lo)
+
 params = {
-	"latitude": lat,
-	"longitude": lon,
+	"latitude": grid_lats,
+	"longitude": grid_lons,
 	"current": ["wind_speed_10m", "wind_direction_10m"],
 }
 responses = openmeteo.weather_api(url, params = params)
 response = responses[0]
 
-for response in responses:
-    current = response.Current()
-    speed = current.Variables(0).Value()
-    direction = current.Variables(1).Value()
-    print(f"{response.Latitude():.2f}N {response.Longitude():.2f}E — {speed:.1f} m/s, {direction:.0f}°")
+height = len(lat)
+width = len(lon)
+img = Image.new("RGB", (width, height))
+
+max_wind = 50
+i = 0
+for y in range(height):
+    for x in range(width):
+        response = responses[i]
+        current = response.Current()
+        speed = current.Variables(0).Value()
+        direction = current.Variables(1).Value()
+
+        u = speed * math.sin(math.radians(direction))
+        v = speed * math.cos(math.radians(direction))
+
+        r = int(((u / max_wind) + 1) / 2 * 255)
+        b = int(((v / max_wind) + 1) / 2 * 255)
+        r = max(0, min(255, r))
+        b = max(0, min(255, b))
+
+        img.putpixel((x, y), (r, 0, b))
+        i += 1
+
+scaled = img.resize((width * 50, height * 50), Image.NEAREST)
+scaled.save("wind.png")
+
