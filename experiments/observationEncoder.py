@@ -4,6 +4,7 @@ import math
 import pandas as pd
 import requests_cache
 from retry_requests import retry
+import piexif 
 
 from PIL import Image
 
@@ -22,7 +23,7 @@ class Bounds:
         self.max_lon = max_lon
 
 
-def step_for_bbox(bounds : Bounds, max_points=250):
+def step_for_bbox(bounds : Bounds, max_points=1000):
     span_lat = bounds.max_lat - bounds.min_lat
     span_lon = bounds.max_lon - bounds.min_lon
     # pick step so lat_count * lon_count ≈ max_points
@@ -75,6 +76,13 @@ height = len(lat)
 width = len(lon)
 img = Image.new("RGB", (width, height))
 
+min_u = float('inf')
+max_u = float('-inf')
+min_v = float('inf')
+max_v = float('-inf')
+min_speed = float('inf')
+max_speed = float('-inf')
+
 max_wind = 50
 i = 0
 for y in range(height):
@@ -87,14 +95,25 @@ for y in range(height):
         u = speed * math.sin(math.radians(direction))
         v = speed * math.cos(math.radians(direction))
 
-        r = int(((u / max_wind) + 1) / 2 * 255)
-        b = int(((v / max_wind) + 1) / 2 * 255)
+        r = int(((u / max_wind) + 1) / 2 * 255) #u normalized
+        g = int(((v / max_wind) + 1) / 2 * 255) # v noramlzied
         r = max(0, min(255, r))
-        b = max(0, min(255, b))
+        g = max(0, min(255, g))
 
-        img.putpixel((x, y), (r, 0, b))
+        min_u = min(min_u, u)
+        max_u = max(max_u, u)
+        min_v = min(min_v, v)
+        max_v = max(max_v, v)
+        min_speed = min(min_speed, speed)
+        max_speed = max(max_speed, speed)
+
+        img.putpixel((x, y), (r, g, 255))
         i += 1
 
-scaled = img.resize((width * 50, height * 50), Image.NEAREST)
-scaled.save("wind.png")
+exif_string = f"{min_u},{max_u};{min_v},{max_v};{min_speed},{max_speed};"
+exif_dict = {"0th": {piexif.ImageIFD.ImageDescription: exif_string.encode()}}
+exif_bytes = piexif.dump(exif_dict)
+img.save("wind.jpg", exif=exif_bytes)
 
+exif_check = piexif.load("wind.jpg")
+print("ImageDescription:", exif_check["0th"].get(piexif.ImageIFD.ImageDescription))
